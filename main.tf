@@ -21,6 +21,13 @@ provider "aws" {
 }
 
 
+resource "aws_s3_bucket" "cf_logging" {
+    bucket = "cloudfront_logging"
+    tags ={
+        Name = "cloudfront_logging"
+    }
+}
+
 resource "aws_s3_bucket" "inventory_deployment" {
   bucket = "inventory_deployment"
 
@@ -132,6 +139,8 @@ resource "aws_lambda_function_url" "apiserver" {
 locals {
   inventory_origin_id = "inventory"
   api_origin_id = "backend"
+  image_origin_id = "image"
+  scaled_image_origin_id = "scaledimage" 
 }
 
 
@@ -164,21 +173,32 @@ resource "aws_cloudfront_distribution" "cloudfront" {
     origin_id = local.api_origin_id
   }
 
+  origin {
+    domain_name = aws_s3_bucket.scaled_images.bucket_regional_domain_name
+    origin_access_control_id = aws_cloudfront_origin_access_control.s3.id
+    origin_id = local.scaled_image_origin_id
+  }
+  origin {
+    domain_name = aws_s3_bucket.images.bucket_regional_domain_name
+    origin_access_control_id = aws_cloudfront_origin_access_control.s3.id
+    origin_id = local.image_origin_id
+  }
+
   enabled             = true
   is_ipv6_enabled     = true
   comment             = "Cloudfront"
   default_root_object = "index.html"
 
-#   logging_config {
-#     include_cookies = false
-#     bucket          = "mylogs.s3.amazonaws.com"
-#     prefix          = "myprefix"
-#   }
+  logging_config {
+    include_cookies = false
+    bucket          = aws_s3_bucket.cf_logging.bucket_domain_name
+    prefix          = "accesslog"
+  }
 
-  aliases = ["inventory.seda.club", "inventory.seda.club"]
+  aliases = ["inventory.seda.club"]
 
   default_cache_behavior {
-    allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    allowed_methods  = ["GET", "HEAD", "OPTIONS"]
     cached_methods   = ["GET", "HEAD"]
     target_origin_id = local.inventory_origin_id
 
@@ -203,6 +223,53 @@ resource "aws_cloudfront_distribution" "cloudfront" {
       restriction_type = "whitelist"
       locations        = ["KR"]
     }
+  }
+
+  ordered_cache_behavior {
+    allowed_methods = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods = []
+    target_origin_id = local.api_origin_id
+
+    path_pattern = "/api/**"
+
+    forwarded_values {
+      query_string = true
+      cookies {
+        forward = "all"
+      }
+    }
+
+    viewer_protocol_policy = "allow-all"
+    min_ttl = 0
+    max_ttl = 0
+    default_ttl = 0
+  }
+
+
+  ordered_cache_behavior {
+    allowed_methods = ["GET", "HEAD", "OPTIONS"]
+    cached_methods = ["GET", "HEAD", "OPTIONS"]
+    target_origin_id = local.image_origin_id
+
+    path_pattern = "/image/**"
+
+    viewer_protocol_policy = "allow-all"
+    min_ttl = 0
+    max_ttl = 86400
+    default_ttl = 3600
+  }
+
+  ordered_cache_behavior {
+    allowed_methods = ["GET", "HEAD", "OPTIONS"]
+    cached_methods = ["GET", "HEAD", "OPTIONS"]
+    target_origin_id = local.scaled_image_origin_id
+
+    path_pattern = "/scaled/**"
+
+    viewer_protocol_policy = "allow-all"
+    min_ttl = 0
+    max_ttl = 86400
+    default_ttl = 3600
   }
 
   tags = {
