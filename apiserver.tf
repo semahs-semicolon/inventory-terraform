@@ -32,6 +32,16 @@ data "aws_iam_policy_document" "apiserver" {
 
     actions = ["lambda:InvokeFunctionUrl"]
   }
+
+  statement {
+    effect = "Allow"
+
+    resources = [
+        module.image_embedding.sagemaker_endpoint.arn
+    ]
+
+    actions = ["sagemaker:InvokeEndpoint"]
+  }
 }
 
 

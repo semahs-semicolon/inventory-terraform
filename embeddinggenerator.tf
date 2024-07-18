@@ -1,6 +1,6 @@
 // this file is for image embedding generator, for iamge search
 
-module "sagemaker-huggingface" {
+module "image_embedding" {
   source  = "philschmid/sagemaker-huggingface/aws"
   version = "0.9.0"
   name_prefix          = "image_embedding"

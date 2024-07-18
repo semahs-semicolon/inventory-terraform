@@ -51,7 +51,7 @@ resource "aws_lambda_function" "aicategorizer" {
 
   image_uri = "public.ecr.aws/docker/library/hello-world:nanoserver"
   handler = "asdf"
-  runtime = "nodejs18.0"
+  runtime = "nodejs18.x"
 
   publish = true
 }
