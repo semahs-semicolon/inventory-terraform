@@ -31,6 +31,15 @@ resource "aws_iam_role" "resizer" {
 }
 
 
+resource "aws_lambda_permission" "resizer_allow_bucket" {
+  statement_id  = "AllowExecutionFromS3Bucket"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.resizer.arn
+  principal     = "s3.amazonaws.com"
+  source_arn    = aws_s3_bucket.images.arn
+}
+
+
 
 resource "aws_lambda_function" "resizer" {
   function_name = "image_resizer"
@@ -39,4 +48,15 @@ resource "aws_lambda_function" "resizer" {
   image_uri = "public.ecr.aws/docker/library/hello-world:nanoserver"
   handler = "aa"
   runtime = "nodejs18.x"
+}
+
+resource "aws_s3_bucket_notification" "resize_notif" {
+    bucket = aws_s3_bucket.images.id
+
+    lambda_function {
+        lambda_function_arn = aws_lambda_function.resizer.arn
+        events              = ["s3:ObjectCreated:*"]
+    }
+
+    depends_on = [aws_lambda_permission.resizer_allow_bucket]
 }
