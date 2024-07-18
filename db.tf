@@ -1,7 +1,7 @@
 
 resource "aws_instance" "database" {
     ami = "ami-09cb0f54fe24c54a6"
-    instance_type = "t2.micro"
+    instance_type = "t4g.micro"
 
     user_data = <<-EOL
         #!/bin/bash -xe

@@ -20,6 +20,12 @@ provider "aws" {
   profile = "semicolon-inventory"
 }
 
+provider "aws" {
+  alias = "oregon"
+  region  = "us-west-2"
+  profile = "semicolon-inventory"
+}
+
 
 
 

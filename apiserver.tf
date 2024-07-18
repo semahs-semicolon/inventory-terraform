@@ -1,4 +1,14 @@
 
+data "aws_bedrock_foundation_model" "llama8B" {
+  provider = aws.oregon
+  model_id = "meta.llama3-8b-instruct-v1:0"
+}
+
+data "aws_bedrock_foundation_model" "llama70B" {
+  provider = aws.oregon
+  model_id = "meta.llama3-70b-instruct-v1:0"
+}
+
 
 data "aws_iam_policy_document" "apiserver" {
   statement {
@@ -21,6 +31,18 @@ data "aws_iam_policy_document" "apiserver" {
     ]
 
     actions = ["s3:PutObject", "s3:GetObject"]
+  }
+
+  statement {
+    effect = "Allow"
+
+    resources = [
+        data.aws_bedrock_foundation_model.llama8B.model_arn,
+        data.aws_bedrock_foundation_model.llama70B.model_arn
+    ]
+
+    actions = ["bedrock:InvokeModel"]
+
   }
 }
 
