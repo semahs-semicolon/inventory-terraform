@@ -21,119 +21,6 @@ provider "aws" {
 }
 
 
-resource "aws_s3_bucket" "cf_logging" {
-    bucket = "cloudfront_logging"
-    tags ={
-        Name = "cloudfront_logging"
-    }
-}
-
-resource "aws_s3_bucket" "inventory_deployment" {
-  bucket = "inventory_deployment"
-
-  tags = {
-    Name = "inventory_deployment"
-  }
-}
-
-resource "aws_s3_bucket_acl" "inventory_deployment" {
-  bucket = aws_s3_bucket.inventory_deployment.id
-  acl    = "private"
-}
-
-resource "aws_s3_bucket" "images" {
-  bucket = "images"
-
-  tags = {
-    Name = "images"
-  }
-}
-resource "aws_s3_bucket_acl" "images" {
-  bucket = aws_s3_bucket.images.id
-  acl    = "private"
-}
-
-resource "aws_s3_bucket" "scaled_images" {
-  bucket = "scaled_images"
-  tags = {
-    Name = "scaled_images"
-  }
-}
-
-resource "aws_s3_bucket_acl" "scaled_images" {
-  bucket = aws_s3_bucket.scaled_images.id
-  acl    = "private"
-}
-
-
-
-resource "aws_instance" "database" {
-    ami = "ami-09cb0f54fe24c54a6"
-    instance_type = "t2.micro"
-
-    user_data = <<-EOL
-        #!/bin/bash -xe
-        apt update
-        apt install postgresql --yes
-        EOL
-    // will take care of it manually
-  
-    tags = {
-        Name = "Database"
-    }
-}
-
-
-data "aws_iam_policy_document" "apiserver" {
-  statement {
-    effect = "Allow"
-
-    principals {
-      type        = "Service"
-      identifiers = ["lambda.amazonaws.com"]
-    }
-
-
-    actions = ["sts:AssumeRole"]
-  }
-}
-
-
-resource "aws_iam_role" "apiserver" {
-  name               = "apiserver"
-  assume_role_policy = data.aws_iam_policy_document.apiserver.json
-}
-
-
-
-
-resource "aws_lambda_function" "apiserver" {
-  function_name = "apiserver"
-  role = aws_iam_role.apiserver.arn
-
-  image_uri = "asdlkasljd"
-  handler = "index.test"
-  runtime = "nodejs18.x"
-#   provisioner "asd" {
-    
-#   }
-  publish = true
-}
-
-resource "aws_lambda_function_url" "apiserver" {
-  function_name = aws_lambda_function.apiserver.function_name
-  authorization_type = "AWS_IAM"
-
-
-  cors {
-    allow_credentials = true
-    allow_origins     = ["*"]
-    allow_methods     = ["*"]
-    allow_headers     = ["date", "keep-alive"]
-    expose_headers    = ["keep-alive", "date"]
-    max_age           = 86400
-  }
-}
 
 
 locals {
@@ -142,6 +29,14 @@ locals {
   image_origin_id = "image"
   scaled_image_origin_id = "scaledimage" 
 }
+
+resource "aws_s3_bucket" "cf_logging" {
+    bucket = "cloudfront_logging"
+    tags ={
+        Name = "cloudfront_logging"
+    }
+}
+
 
 
 resource "aws_cloudfront_origin_access_control" "s3" {
@@ -158,6 +53,9 @@ resource "aws_cloudfront_origin_access_control" "api" {
   signing_behavior                  = "always"
   signing_protocol                  = "sigv4"
 }
+
+
+
 
 
 resource "aws_cloudfront_distribution" "cloudfront" {
@@ -280,3 +178,4 @@ resource "aws_cloudfront_distribution" "cloudfront" {
     cloudfront_default_certificate = true
   }
 }
+
