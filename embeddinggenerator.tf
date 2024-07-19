@@ -7,7 +7,7 @@ module "image_embedding" {
   pytorch_version      = "1.13.1"
   transformers_version = "4.26.0"
   hf_model_id          = "clip-ViT-B-32"
-  hf_task              = "sentence-similarity"
+  hf_task              = "feature-extraction"
   serverless_config = {
     max_concurrency   = 1
     memory_size_in_mb = 1024

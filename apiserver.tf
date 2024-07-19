@@ -30,7 +30,7 @@ data "aws_iam_policy_document" "apiserver" {
         aws_lambda_function.aicategorizer.arn
     ]
 
-    actions = ["lambda:InvokeFunctionUrl"]
+    actions = ["lambda:InvokeFunctionUrl", "lambda:InvokeFunction"]
   }
 
   statement {
