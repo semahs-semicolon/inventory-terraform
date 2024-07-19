@@ -3,6 +3,7 @@
 resource "aws_ssm_parameter" "database_password" {
   type = "SecureString"
   name = "database_password"
+  value = ""
 }
 
 resource "aws_instance" "database" {

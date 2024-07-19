@@ -67,10 +67,12 @@ resource "aws_iam_role" "apiserver" {
 resource "aws_ssm_parameter" "jwt_pubkey" {
   type = "SecureString"
   name = "jwt_pubkey"
+  value = ""
 }
 resource "aws_ssm_parameter" "jwt_privkey" {
   type = "SecureString"
   name = "jwt_pubkey"
+  value = ""
 }
 
 // TODO
