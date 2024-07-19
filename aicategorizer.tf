@@ -39,7 +39,7 @@ data "aws_iam_policy_document" "aicategorizer" {
 
 
 resource "aws_iam_role" "aicategorizer" {
-  name               = "apiserver"
+  name               = "aicategorizer"
   assume_role_policy = data.aws_iam_policy_document.aicategorizer.json
 }
 
@@ -54,19 +54,4 @@ resource "aws_lambda_function" "aicategorizer" {
   runtime = "nodejs18.x"
 
   publish = true
-}
-
-resource "aws_lambda_function_url" "aicategorizer" {
-  function_name = aws_lambda_function.aicategorizer.function_name
-  authorization_type = "AWS_IAM"
-
-
-  cors {
-    allow_credentials = true
-    allow_origins     = ["*"]
-    allow_methods     = ["*"]
-    allow_headers     = ["date", "keep-alive"]
-    expose_headers    = ["keep-alive", "date"]
-    max_age           = 86400
-  }
 }

@@ -1,16 +1,57 @@
 // this file is for image embedding generator, for iamge search
 
-module "image_embedding" {
-  source  = "philschmid/sagemaker-huggingface/aws"
-  version = "0.9.0"
-  name_prefix          = "image_embedding"
-  pytorch_version      = "1.13.1"
-  transformers_version = "4.26.0"
-  hf_model_id          = "clip-ViT-B-32"
-  hf_task              = "feature-extraction"
-  serverless_config = {
-    max_concurrency   = 1
-    memory_size_in_mb = 1024
+data "aws_iam_policy_document" "embedding_generator" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+
+
+    actions = ["sts:AssumeRole"]
   }
-  instance_type        = "ml.m5.xlarge"
+
+  statement {
+    effect = "Allow"
+
+    actions = ["s3:GetObject"]
+
+    resources = [ format("%s/*", aws_s3_bucket.images.arn) ]
+  }
+}
+
+
+resource "aws_iam_role" "embedding_generator" {
+  name               = "embedding_generator"
+  assume_role_policy = data.aws_iam_policy_document.embedding_generator.json
+}
+
+
+// TODO
+resource "aws_lambda_function" "embedding_generator" {
+  function_name = "embedding_generator"
+  role = aws_iam_role.embedding_generator.arn
+
+  image_uri = "public.ecr.aws/docker/library/hello-world:nanoserver"
+  handler = "asdf"
+  runtime = "nodejs18.x"
+
+  publish = true
+}
+
+resource "aws_lambda_function_url" "embedding_generator" {
+  function_name = aws_lambda_function.embedding_generator.function_name
+  authorization_type = "AWS_IAM"
+
+
+  cors {
+    allow_credentials = true
+    allow_origins     = ["*"]
+    allow_methods     = ["*"]
+    allow_headers     = ["date", "keep-alive"]
+    expose_headers    = ["keep-alive", "date"]
+    max_age           = 86400
+  }
 }

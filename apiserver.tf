@@ -17,7 +17,8 @@ data "aws_iam_policy_document" "apiserver" {
     effect = "Allow"
 
     resources = [
-        aws_s3_bucket.images.arn
+        aws_s3_bucket.images.arn,
+        format("%s/*", aws_s3_bucket.images.arn),
     ]
 
     actions = ["s3:PutObject", "s3:GetObject"]
@@ -37,10 +38,21 @@ data "aws_iam_policy_document" "apiserver" {
     effect = "Allow"
 
     resources = [
-        module.image_embedding.sagemaker_endpoint.arn
+        aws_lambda_function.embedding_generator.arn
     ]
 
-    actions = ["sagemaker:InvokeEndpoint"]
+    actions = ["lambda:InvokeFunction"]
+  }
+
+  statement {
+    effect = "Allow"
+
+    resources = [
+        aws_ssm_parameter.jwt_privkey.arn,
+        aws_ssm_parameter.jwt_pubkey.arn
+    ]
+
+    actions = ["ssm:GetParameter", "kms:Decrypt"]
   }
 }
 
@@ -50,6 +62,15 @@ resource "aws_iam_role" "apiserver" {
   assume_role_policy = data.aws_iam_policy_document.apiserver.json
 }
 
+
+resource "aws_ssm_parameter" "jwt_pubkey" {
+  type = "SecureString"
+  name = "jwt_pubkey"
+}
+resource "aws_ssm_parameter" "jwt_privkey" {
+  type = "SecureString"
+  name = "jwt_pubkey"
+}
 
 // TODO
 resource "aws_lambda_function" "apiserver" {
@@ -61,6 +82,17 @@ resource "aws_lambda_function" "apiserver" {
   runtime = "java17"
 
   publish = true
+
+  environment {
+    variables = {
+      "CATEGORIZATION_LAMBDA_ARN": aws_lambda_function.aicategorizer.arn,
+      "EMBEDDING_LAMBDA_URL": aws_lambda_function_url.embedding_generator.function_url,
+      "DATABASE_IP": aws_instance.database.private_dns,
+      "IMAGE_BUCKET": aws_s3_bucket.images.id,
+      "JWT_PUBKEY_PARAM_NAME": aws_ssm_parameter.jwt_pubkey.id,
+      "JWT_PRIVKEY_PARAM_NAME": aws_ssm_parameter.jwt_privkey.id
+    }
+  }
 }
 
 resource "aws_lambda_function_url" "apiserver" {
