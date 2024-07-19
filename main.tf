@@ -17,13 +17,13 @@ terraform {
 
 provider "aws" {
   region  = "ap-northeast-2"
-  profile = "semicolon-inventory"
+  profile = "semicolon-inventory-test"
 }
 
 provider "aws" {
   alias = "oregon"
   region  = "us-west-2"
-  profile = "semicolon-inventory"
+  profile = "semicolon-inventory-test"
 }
 
 
