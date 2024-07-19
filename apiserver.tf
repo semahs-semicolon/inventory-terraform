@@ -49,7 +49,8 @@ data "aws_iam_policy_document" "apiserver" {
 
     resources = [
         aws_ssm_parameter.jwt_privkey.arn,
-        aws_ssm_parameter.jwt_pubkey.arn
+        aws_ssm_parameter.jwt_pubkey.arn,
+        aws_ssm_parameter.database_password.arn
     ]
 
     actions = ["ssm:GetParameter", "kms:Decrypt"]
@@ -90,7 +91,8 @@ resource "aws_lambda_function" "apiserver" {
       "DATABASE_IP": aws_instance.database.private_dns,
       "IMAGE_BUCKET": aws_s3_bucket.images.id,
       "JWT_PUBKEY_PARAM_NAME": aws_ssm_parameter.jwt_pubkey.id,
-      "JWT_PRIVKEY_PARAM_NAME": aws_ssm_parameter.jwt_privkey.id
+      "JWT_PRIVKEY_PARAM_NAME": aws_ssm_parameter.jwt_privkey.id,
+      "DATABASE_PASSWORD_PARAM_NAME": aws_ssm_parameter.database_password.id
     }
   }
 }

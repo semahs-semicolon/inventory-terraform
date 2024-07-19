@@ -1,4 +1,10 @@
 
+
+resource "aws_ssm_parameter" "database_password" {
+  type = "SecureString"
+  name = "database_password"
+}
+
 resource "aws_instance" "database" {
     ami = "ami-09cb0f54fe24c54a6"
     instance_type = "t4g.micro"
