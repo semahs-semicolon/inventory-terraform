@@ -12,22 +12,26 @@ locals {
     "2a": {
         "az": "ap-northeast-2a",
         "name": "a",
-        "public": "101"
+        "public": "101",
+        "private": "1"
     },
     "2b": {
         "az": "ap-northeast-2b",
         "name": "b",
-        "public": "102"
+        "public": "102",
+        "private": "2"
     },
     "2c": {
         "az": "ap-northeast-2c",
         "name": "c",
-        "public": "103"
+        "public": "103",
+        "private": "3"
     },
     "2d": {
         "az": "ap-northeast-2d",
         "name": "d",
-        "public": "104"
+        "public": "104",
+        "private": "4"
     },
   }
 }
@@ -43,6 +47,18 @@ resource "aws_subnet" "public_subnets" {
         Name = "public_subnet_${each.value.name}"
     }
 }
+
+resource "aws_subnet" "private_subnets" {
+    for_each = local.vpc_az
+
+    vpc_id     = aws_vpc.vpc.id
+    cidr_block = "172.16.${each.value.private}.0/24"
+    availability_zone = each.value.az
+    tags = {
+        Name = "private_subnet_${each.value.name}"
+    }
+}
+
 
 resource "aws_internet_gateway" "igw" {
     vpc_id = aws_vpc.vpc.id
@@ -68,6 +84,13 @@ resource "aws_default_route_table" "public_rt" {
 
 resource "aws_route_table_association" "vpc_rt_association" {
   for_each = aws_subnet.public_subnets
+
+  subnet_id = each.value.id
+  route_table_id = aws_default_route_table.public_rt.id
+}
+
+resource "aws_route_table_association" "vpc_rt_association2" {
+  for_each = aws_subnet.private_subnets
 
   subnet_id = each.value.id
   route_table_id = aws_default_route_table.public_rt.id

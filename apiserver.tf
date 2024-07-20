@@ -117,7 +117,7 @@ resource "aws_lambda_function" "apiserver" {
   }
   vpc_config {
     security_group_ids = [ aws_default_security_group.default_sg.id ]
-    subnet_ids = [ for k,v in aws_subnet.public_subnets : v.id ]
+    subnet_ids = [ for k,v in aws_subnet.private_subnets : v.id ]
   }
 }
 

@@ -23,8 +23,8 @@ resource "aws_instance" "database" {
         #!/bin/bash -xe
         
         # update mirror
-        sed -i "s/ap-northeast-2b.clouds.ports.ubuntu.com/ftp.kaist.ac.kr/g' /etc/apt/sources.list.d/ubuntu.sources
-        sed -i "s/ports.ubuntu.com/ftp.kaist.ac.kr/g' /etc/apt/sources.list.d/ubuntu.sources
+        sed -i 's/[a-zA-Z0-9_\\\-]*.clouds.ports.ubuntu.com/ftp.kaist.ac.kr/g' /etc/apt/sources.list.d/ubuntu.sources
+        sed -i 's/ports.ubuntu.com/ftp.kaist.ac.kr/g' /etc/apt/sources.list.d/ubuntu.sources
         
         # install postgresql
         apt update
@@ -47,7 +47,8 @@ resource "aws_instance" "database" {
         wget https://bitbucket.org/eunjeon/mecab-ko/downloads/mecab-0.996-ko-0.9.2.tar.gz
         tar zxfv mecab-0.996-ko-0.9.2.tar.gz 
         cd mecab-0.996-ko-0.9.2
-        ./configure --build=aarch64-unknown-linux-gnu # well.... we're on aarch64. (graviton)
+        ./configure --build=aarch64-unknown-linux-gnu 
+        # well.... we're on aarch64.
         make
         make check
         make install
