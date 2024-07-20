@@ -56,7 +56,7 @@ data "aws_iam_policy_document" "inventory_front_deploy_github_actions_assume" {
     condition {
       test = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values = ["repo:sema-semicolon/inventory-front:environment:production"]
+      values = ["repo:semahs-semicolon/inventory-front:environment:production"]
     }
 
 
@@ -77,6 +77,7 @@ data "aws_iam_policy_document" "inventory_front_deploy_github_actions_perm" {
         "s3:DeleteObject",
         "s3:GetObject",
         "s3:ListBucket",
+        "s3:ListObjectsV2",
         "s3:PutObject"
     ]
   }
