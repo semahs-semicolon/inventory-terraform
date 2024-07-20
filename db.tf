@@ -5,6 +5,11 @@ resource "aws_ssm_parameter" "database_password" {
   name = "database_password"
   value = "e"
   overwrite = false
+
+
+  lifecycle {
+    ignore_changes  = ["value", "overwrite"]
+  }
 }
 
 resource "aws_key_pair" "keypair" {

@@ -85,12 +85,19 @@ resource "aws_ssm_parameter" "jwt_pubkey" {
   name = "jwt_pubkey"
   value = "e"
   overwrite = false
+  lifecycle {
+    ignore_changes  = ["value", "overwrite"]
+  }
 }
 resource "aws_ssm_parameter" "jwt_privkey" {
   type = "SecureString"
   name = "jwt_privkey"
   value = "e"
   overwrite = false
+
+  lifecycle {
+    ignore_changes  = ["value", "overwrite"]
+  }
 }
 
 // TODO
@@ -137,8 +144,15 @@ resource "aws_lambda_permission" "apiserver_cloudfront" {
   source_arn = "arn:aws:cloudfront::851725607847:distribution/E3F36JEUQGM4ZU"
 }
 
+resource "aws_lambda_alias" "production" {
+  function_version = aws_lambda_function.apiserver.version
+  function_name = aws_lambda_function.apiserver.function_name
+  name = "production"
+}
+
 resource "aws_lambda_function_url" "apiserver" {
   function_name = aws_lambda_function.apiserver.function_name
+  qualifier = aws_lambda_alias.production.name
   authorization_type = "AWS_IAM"
 
 
