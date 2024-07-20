@@ -66,6 +66,7 @@ resource "aws_iam_role" "apiserver" {
   assume_role_policy = data.aws_iam_policy_document.apiserver_assume.json
 
   inline_policy {
+    name = "apiserver_perms"
     policy = data.aws_iam_policy_document.apiserver_perm.json
   }
 }
@@ -107,6 +108,14 @@ resource "aws_lambda_function" "apiserver" {
   }
 }
 
+resource "aws_lambda_permission" "apiserver_cloudfront" {
+  statement_id = "AllowCloudFrontExecuteAPIServer"
+  function_name = aws_lambda_function.apiserver.function_name
+  action = "lambda:InvokeFunctionUrl"
+  principal = "cloudfront.amazonaws.com"
+  source_arn = "arn:aws:cloudfront::851725607847:distribution/E3F36JEUQGM4ZU"
+}
+
 resource "aws_lambda_function_url" "apiserver" {
   function_name = aws_lambda_function.apiserver.function_name
   authorization_type = "AWS_IAM"
@@ -119,5 +128,62 @@ resource "aws_lambda_function_url" "apiserver" {
     allow_headers     = ["date", "keep-alive"]
     expose_headers    = ["keep-alive", "date"]
     max_age           = 86400
+  }
+
+  
+}
+
+
+
+
+
+data "aws_iam_policy_document" "apiserver_deploy_github_actions_assume" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type = "Federated"
+      identifiers = [aws_iam_openid_connect_provider.github.arn]
+    }
+    condition {
+        test = "StringEquals"
+        variable = "token.actions.githubusercontent.com:aud"
+
+        values = ["sts.amazonaws.com"] 
+    }
+    condition {
+      test = "StringEquals"
+      variable = "token.actions.githubusercontent.com:sub"
+      values = ["repo:semahs-semicolon/inventory-backend:environment:production"]
+    }
+
+
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+  }
+}
+
+data "aws_iam_policy_document" "apiserver_deploy_github_actions_perm" {
+  
+  statement {
+    effect = "Allow"
+
+    resources = [
+        aws_lambda_function.apiserver.arn
+    ]
+
+    actions = [
+        "lambda:PublishVersion",
+        "lambda:UpdateFunctionCode"
+    ]
+  }
+}
+
+resource "aws_iam_role" "apiserver_deploy_github_actions" {
+  name               = "apiserver_deploy_github_actions"
+  assume_role_policy = data.aws_iam_policy_document.apiserver_deploy_github_actions_assume.json
+
+  inline_policy {
+    name = "allow_deployment_to_lambda_apiserver"
+    policy = data.aws_iam_policy_document.apiserver_deploy_github_actions_perm.json
   }
 }

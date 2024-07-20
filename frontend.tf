@@ -65,6 +65,7 @@ data "aws_iam_policy_document" "inventory_front_deploy_github_actions_assume" {
 }
 
 data "aws_iam_policy_document" "inventory_front_deploy_github_actions_perm" {
+  
   statement {
     effect = "Allow"
 
@@ -78,7 +79,6 @@ data "aws_iam_policy_document" "inventory_front_deploy_github_actions_perm" {
         "s3:GetObject",
         "s3:HeadObject",
         "s3:ListBucket",
-        "s3:ListObjectsV2",
         "s3:PutObject"
     ]
   }
@@ -89,6 +89,7 @@ resource "aws_iam_role" "inventory_front_deploy_github_actions" {
   assume_role_policy = data.aws_iam_policy_document.inventory_front_deploy_github_actions_assume.json
 
   inline_policy {
+    name = "allow_deployment_to_s3"
     policy = data.aws_iam_policy_document.inventory_front_deploy_github_actions_perm.json
   }
 }

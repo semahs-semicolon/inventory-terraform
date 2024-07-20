@@ -45,6 +45,7 @@ resource "aws_iam_role" "aicategorizer" {
   assume_role_policy = data.aws_iam_policy_document.aicategorizer_assume.json
 
   inline_policy {
+    name = "aicategorizer_perms"
     policy = data.aws_iam_policy_document.aicategorizer_perm.json
   }
 }

@@ -29,6 +29,7 @@ resource "aws_iam_role" "embedding_generator" {
   assume_role_policy = data.aws_iam_policy_document.embedding_generator_assume.json
 
   inline_policy {
+    name = "embeddinggen_perms"
     policy = data.aws_iam_policy_document.embedding_generator_perm.json
   }
 }

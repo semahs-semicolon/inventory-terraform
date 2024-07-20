@@ -31,6 +31,7 @@ resource "aws_iam_role" "resizer" {
   assume_role_policy = data.aws_iam_policy_document.resizer_assume.json
 
   inline_policy {
+    name = "resizer_perms"
     policy = data.aws_iam_policy_document.resizer_perm.json
   }
 }

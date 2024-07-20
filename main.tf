@@ -138,6 +138,8 @@ resource "aws_cloudfront_distribution" "cloudfront" {
     domain_name = replace(aws_lambda_function_url.apiserver.function_url,"/(^https://)|(/$)/","")
     origin_id = local.api_origin_id
 
+    origin_access_control_id = aws_cloudfront_origin_access_control.api.id
+
     custom_origin_config {
       origin_ssl_protocols = ["TLSv1.2", "TLSv1.1", "TLSv1", "SSLv3"]
       http_port = 80
@@ -160,7 +162,7 @@ resource "aws_cloudfront_distribution" "cloudfront" {
   enabled             = true
   is_ipv6_enabled     = true
   comment             = "Cloudfront"
-  default_root_object = "index.html"
+  default_root_object = "200.html"
 
   logging_config {
     include_cookies = false
@@ -274,7 +276,7 @@ resource "aws_cloudfront_distribution" "cloudfront" {
   custom_error_response {
     error_code = 404
     response_code = 200
-    response_page_path = "/index.html"
+    response_page_path = "/200.html"
   }
 
   depends_on = [ aws_s3_bucket_ownership_controls.cf_logging, aws_s3_bucket_acl.cf_logging, aws_acm_certificate_validation.cert_valid ]
