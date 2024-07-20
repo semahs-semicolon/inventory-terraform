@@ -7,7 +7,7 @@ resource "aws_s3_bucket" "images" {
 }
 
 resource "aws_s3_bucket_policy" "images" {
-  bucket = aws_s3_bucket.images.arn
+  bucket = aws_s3_bucket.images.id
   policy = data.aws_iam_policy_document.images_cloudfront.json
 }
 
@@ -31,6 +31,7 @@ data "aws_iam_policy_document" "images_cloudfront" {
   }
 }
 
+
 resource "aws_s3_bucket" "scaled_images" {
   bucket = "scaled-images2"
   tags = {
@@ -39,7 +40,7 @@ resource "aws_s3_bucket" "scaled_images" {
 }
 
 resource "aws_s3_bucket_policy" "scaled_images" {
-  bucket = aws_s3_bucket.scaled_images.arn
+  bucket = aws_s3_bucket.scaled_images.id
   policy = data.aws_iam_policy_document.scaled_images_cloudfront.json
 }
 
