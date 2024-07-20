@@ -63,15 +63,15 @@ data "aws_iam_policy_document" "apiserver_perm" {
 data "aws_iam_policy" "lambda_default_execution" {
   name = "AWSLambdaBasicExecutionRole"
 }
-data "aws_iam_policy" "lambda_vpc" {
-  name = "AWSLambdaVPCAccessExecutionRole"
-}
+# data "aws_iam_policy" "lambda_vpc" {
+#   name = "AWSLambdaVPCAccessExecutionRole"
+# }
 
 resource "aws_iam_role" "apiserver" {
   name               = "apiserver"
   assume_role_policy = data.aws_iam_policy_document.apiserver_assume.json
 
-  managed_policy_arns = [data.aws_iam_policy.lambda_default_execution.arn, data.aws_iam_policy.lambda_vpc.arn]
+  managed_policy_arns = [data.aws_iam_policy.lambda_default_execution.arn]
 
   inline_policy {
     name = "apiserver_perms"
@@ -84,11 +84,13 @@ resource "aws_ssm_parameter" "jwt_pubkey" {
   type = "SecureString"
   name = "jwt_pubkey"
   value = "e"
+  overwrite = false
 }
 resource "aws_ssm_parameter" "jwt_privkey" {
   type = "SecureString"
   name = "jwt_privkey"
   value = "e"
+  overwrite = false
 }
 
 // TODO
@@ -107,7 +109,7 @@ resource "aws_lambda_function" "apiserver" {
     variables = {
       "CATEGORIZATION_LAMBDA_ARN": aws_lambda_function.aicategorizer.arn,
       "EMBEDDING_LAMBDA_URL": aws_lambda_function_url.embedding_generator.function_url,
-      "DATABASE_IP": aws_instance.database.private_dns,
+      "DATABASE_HOSTNAME": aws_instance.database.public_ip,
       "IMAGE_BUCKET": aws_s3_bucket.images.id,
       "JWT_PUBKEY_PARAM_NAME": aws_ssm_parameter.jwt_pubkey.id,
       "JWT_PRIVKEY_PARAM_NAME": aws_ssm_parameter.jwt_privkey.id,
@@ -115,9 +117,15 @@ resource "aws_lambda_function" "apiserver" {
       "JWT_RANDOM": "false"
     }
   }
-  vpc_config {
-    security_group_ids = [ aws_default_security_group.default_sg.id ]
-    subnet_ids = [ for k,v in aws_subnet.private_subnets : v.id ]
+  # vpc_config {
+  #   security_group_ids = [ aws_default_security_group.default_sg.id ]
+  #   subnet_ids = [ for k,v in aws_subnet.public_subnets : v.id ]
+  # }
+
+  memory_size = 512
+
+  snap_start {
+    apply_on = "PublishedVersions"
   }
 }
 

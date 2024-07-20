@@ -4,6 +4,7 @@ resource "aws_ssm_parameter" "database_password" {
   type = "SecureString"
   name = "database_password"
   value = "e"
+  overwrite = false
 }
 
 resource "aws_key_pair" "keypair" {

@@ -44,7 +44,7 @@ resource "aws_iam_role" "aicategorizer" {
   name               = "aicategorizer"
   assume_role_policy = data.aws_iam_policy_document.aicategorizer_assume.json
 
-  managed_policy_arns = [data.aws_iam_policy.lambda_vpc.arn]
+  # managed_policy_arns = [data.aws_iam_policy.lambda_vpc.arn]
 
   inline_policy {
     name = "aicategorizer_perms"
@@ -66,8 +66,8 @@ resource "aws_lambda_function" "aicategorizer" {
   publish = true
 
 
-  vpc_config {
-    security_group_ids = [ aws_default_security_group.default_sg.id ]
-    subnet_ids = [ for k,v in aws_subnet.private_subnets : v.id ]
-  }
+  # vpc_config {
+  #   security_group_ids = [ aws_default_security_group.default_sg.id ]
+  #   subnet_ids = [ for k,v in aws_subnet.public_subnets : v.id ]
+  # }
 }
