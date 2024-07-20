@@ -144,6 +144,26 @@ resource "aws_acm_certificate_validation" "cert_valid" {
   certificate_arn = aws_acm_certificate.cert.arn
 }
 
+data "aws_cloudfront_cache_policy" "cachedisabled" {
+  name = "Managed-CachingDisabled"
+}
+data "aws_cloudfront_origin_request_policy" "allexcepthost" {
+  name = "Managed-AllViewerExceptHostHeader"
+}
+
+resource "aws_cloudfront_function" "removeapifunc" {
+  name = "removeapi"
+  runtime = "cloudfront-js-2.0"
+  publish = true
+  code = <<-EOL
+  function handler(event) {
+    var request = event.request;
+    request.uri = request.uri.replace(/^\/[^/]*\//, "/");
+    return request;
+  }
+  EOL
+}
+
 resource "aws_cloudfront_distribution" "cloudfront" {
   origin {
     domain_name              = aws_s3_bucket.inventory_deployment.bucket_regional_domain_name
@@ -224,17 +244,15 @@ resource "aws_cloudfront_distribution" "cloudfront" {
 
     path_pattern = "/api/**"
 
-    forwarded_values {
-      query_string = true
-      cookies {
-        forward = "all"
-      }
-    }
 
     viewer_protocol_policy = "redirect-to-https"
-    min_ttl = 0
-    max_ttl = 0
-    default_ttl = 0
+    cache_policy_id  = data.aws_cloudfront_cache_policy.cachedisabled.id
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.allexcepthost.id
+
+    function_association {
+      function_arn = aws_cloudfront_function.removeapifunc.arn
+      event_type = "viewer-request"
+    }
   }
 
 
