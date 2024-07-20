@@ -17,8 +17,66 @@ resource "aws_instance" "database" {
 
     user_data = <<-EOL
         #!/bin/bash -xe
+        
+        # update mirror
+        sed -i "s/ap-northeast-2b.clouds.ports.ubuntu.com/ftp.kaist.ac.kr/g' /etc/apt/sources.list.d/ubuntu.sources
+        sed -i "s/ports.ubuntu.com/ftp.kaist.ac.kr/g' /etc/apt/sources.list.d/ubuntu.sources
+        
+        # install postgresql
         apt update
         apt install postgresql --yes
+        apt install postgresql-server-dev-16 --yes
+
+
+
+        # install pgvector
+        git clone --branch v0.7.2 https://github.com/pgvector/pgvector.git
+        cd pgvector
+        apt install build-essential
+        make
+        make install
+        cd ..
+
+        # install textsearch-ko
+
+        ## install mecab-ko
+        wget https://bitbucket.org/eunjeon/mecab-ko/downloads/mecab-0.996-ko-0.9.2.tar.gz
+        tar zxfv mecab-0.996-ko-0.9.2.tar.gz 
+        cd mecab-0.996-ko-0.9.2
+        ./configure --build=aarch64-unknown-linux-gnu # well.... we're on aarch64. (graviton)
+        make
+        make check
+        make install
+        cd ..
+
+        ## install mecab ko dic
+        wget https://bitbucket.org/eunjeon/mecab-ko-dic/downloads/mecab-ko-dic-2.1.1-20180720.tar.gz
+        tar zxfv mecab-ko-dic-2.1.1-20180720.tar.gz
+        cd mecab-ko-dic-2.1.1-20180720
+        ./configure
+        ldconfig
+        make
+        make install
+        cd ..
+
+        ## install actual textsearch ko
+        git clone https://github.com/i0seph/textsearch_ko.git
+        cd textsearch_ko
+        ./build.sh 
+        cd ..
+
+        # provision accounts
+        cat > /tmp/provision.sql <<EOF
+        create database inventory;
+        EOF
+
+        sudo -u postgres psql -a -f /tmp/provision.sql
+        cd textsearch_ko
+        sudo -u postgres psql -f ts_mecab_ko.sql inventory
+        cd ..
+
+        # apply database dump manually yourself.
+
         EOL
     // will take care of it manually
   
