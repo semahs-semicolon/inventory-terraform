@@ -67,7 +67,24 @@ resource "aws_s3_bucket_acl" "cf_logging" {
   bucket = aws_s3_bucket.cf_logging.id
   acl    = "private"
 
+
   depends_on = [ aws_s3_bucket_ownership_controls.cf_logging ]
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "cf_logging" {
+  bucket = aws_s3_bucket.cf_logging.id
+
+  rule {
+    id = "DeleteOldLogs"
+
+    filter {}
+
+    expiration {
+      days = 7
+    }
+
+    status = "Enabled"
+  }
 }
 
 
