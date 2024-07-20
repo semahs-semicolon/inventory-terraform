@@ -60,10 +60,15 @@ data "aws_iam_policy_document" "apiserver_perm" {
   }
 }
 
+data "aws_iam_policy" "lambda_default_execution" {
+  name = "AWSLambdaBasicExecutionRole"
+}
 
 resource "aws_iam_role" "apiserver" {
   name               = "apiserver"
   assume_role_policy = data.aws_iam_policy_document.apiserver_assume.json
+
+  managed_policy_arns = [data.aws_iam_policy.lambda_default_execution.arn]
 
   inline_policy {
     name = "apiserver_perms"
@@ -103,7 +108,8 @@ resource "aws_lambda_function" "apiserver" {
       "IMAGE_BUCKET": aws_s3_bucket.images.id,
       "JWT_PUBKEY_PARAM_NAME": aws_ssm_parameter.jwt_pubkey.id,
       "JWT_PRIVKEY_PARAM_NAME": aws_ssm_parameter.jwt_privkey.id,
-      "DATABASE_PASSWORD_PARAM_NAME": aws_ssm_parameter.database_password.id
+      "DATABASE_PASSWORD_PARAM_NAME": aws_ssm_parameter.database_password.id,
+      "JWT_RANDOM": "false"
     }
   }
 }
@@ -178,9 +184,11 @@ data "aws_iam_policy_document" "apiserver_deploy_github_actions_perm" {
   }
 }
 
+
 resource "aws_iam_role" "apiserver_deploy_github_actions" {
   name               = "apiserver_deploy_github_actions"
   assume_role_policy = data.aws_iam_policy_document.apiserver_deploy_github_actions_assume.json
+
 
   inline_policy {
     name = "allow_deployment_to_lambda_apiserver"
