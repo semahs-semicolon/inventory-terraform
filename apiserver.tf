@@ -63,12 +63,15 @@ data "aws_iam_policy_document" "apiserver_perm" {
 data "aws_iam_policy" "lambda_default_execution" {
   name = "AWSLambdaBasicExecutionRole"
 }
+data "aws_iam_policy" "lambda_vpc" {
+  name = "AWSLambdaVPCAccessExecutionRole"
+}
 
 resource "aws_iam_role" "apiserver" {
   name               = "apiserver"
   assume_role_policy = data.aws_iam_policy_document.apiserver_assume.json
 
-  managed_policy_arns = [data.aws_iam_policy.lambda_default_execution.arn]
+  managed_policy_arns = [data.aws_iam_policy.lambda_default_execution.arn, data.aws_iam_policy.lambda_vpc.arn]
 
   inline_policy {
     name = "apiserver_perms"
@@ -111,6 +114,10 @@ resource "aws_lambda_function" "apiserver" {
       "DATABASE_PASSWORD_PARAM_NAME": aws_ssm_parameter.database_password.id,
       "JWT_RANDOM": "false"
     }
+  }
+  vpc_config {
+    security_group_ids = [ aws_default_security_group.default_sg.id ]
+    subnet_ids = [ for k,v in aws_subnet.public_subnets : v.id ]
   }
 }
 

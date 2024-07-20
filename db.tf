@@ -15,6 +15,10 @@ resource "aws_instance" "database" {
     ami = "ami-09cb0f54fe24c54a6"
     instance_type = "t4g.nano"
 
+    subnet_id = aws_subnet.public_subnets["2a"].id
+
+    vpc_security_group_ids = [ aws_default_security_group.default_sg.id ]
+
     user_data = <<-EOL
         #!/bin/bash -xe
         
@@ -68,12 +72,17 @@ resource "aws_instance" "database" {
         # provision accounts
         cat > /tmp/provision.sql <<EOF
         create database inventory;
+        create user inventory_system;
+        grant all privileges on database inventory to inventory_system;
         EOF
 
         sudo -u postgres psql -a -f /tmp/provision.sql
         cd textsearch_ko
         sudo -u postgres psql -f ts_mecab_ko.sql inventory
         cd ..
+
+        ## pg_hba entry for db
+
 
         # apply database dump manually yourself.
 
