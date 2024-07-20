@@ -36,7 +36,7 @@ resource "aws_instance" "database" {
         # install pgvector
         git clone --branch v0.7.2 https://github.com/pgvector/pgvector.git
         cd pgvector
-        apt install build-essential
+        apt install build-essential --yes
         make
         make install
         cd ..
