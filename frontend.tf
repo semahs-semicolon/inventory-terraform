@@ -76,6 +76,7 @@ data "aws_iam_policy_document" "inventory_front_deploy_github_actions_perm" {
     actions = [
         "s3:DeleteObject",
         "s3:GetObject",
+        "s3:HeadObject",
         "s3:ListBucket",
         "s3:ListObjectsV2",
         "s3:PutObject"
