@@ -1,6 +1,6 @@
 
 
-data "aws_iam_policy_document" "apiserver" {
+data "aws_iam_policy_document" "apiserver_assume" {
   statement {
     effect = "Allow"
 
@@ -12,6 +12,9 @@ data "aws_iam_policy_document" "apiserver" {
 
     actions = ["sts:AssumeRole"]
   }
+}
+
+data "aws_iam_policy_document" "apiserver_perm" {
 
   statement {
     effect = "Allow"
@@ -60,19 +63,23 @@ data "aws_iam_policy_document" "apiserver" {
 
 resource "aws_iam_role" "apiserver" {
   name               = "apiserver"
-  assume_role_policy = data.aws_iam_policy_document.apiserver.json
+  assume_role_policy = data.aws_iam_policy_document.apiserver_assume.json
+
+  inline_policy {
+    policy = data.aws_iam_policy_document.apiserver_perm.json
+  }
 }
 
 
 resource "aws_ssm_parameter" "jwt_pubkey" {
   type = "SecureString"
   name = "jwt_pubkey"
-  value = ""
+  value = "e"
 }
 resource "aws_ssm_parameter" "jwt_privkey" {
   type = "SecureString"
-  name = "jwt_pubkey"
-  value = ""
+  name = "jwt_privkey"
+  value = "e"
 }
 
 // TODO
@@ -80,7 +87,8 @@ resource "aws_lambda_function" "apiserver" {
   function_name = "apiserver"
   role = aws_iam_role.apiserver.arn
 
-  image_uri = "public.ecr.aws/docker/library/hello-world:nanoserver"
+  
+  filename = "empty.zip"
   handler = "io.seda.inventory.InventoryLambdaHandler"
   runtime = "java17"
 

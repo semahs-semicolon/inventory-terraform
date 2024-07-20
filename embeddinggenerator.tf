@@ -1,6 +1,6 @@
 // this file is for image embedding generator, for iamge search
 
-data "aws_iam_policy_document" "embedding_generator" {
+data "aws_iam_policy_document" "embedding_generator_assume" {
   statement {
     effect = "Allow"
 
@@ -12,7 +12,9 @@ data "aws_iam_policy_document" "embedding_generator" {
 
     actions = ["sts:AssumeRole"]
   }
+}
 
+data "aws_iam_policy_document" "embedding_generator_perm" {
   statement {
     effect = "Allow"
 
@@ -22,10 +24,13 @@ data "aws_iam_policy_document" "embedding_generator" {
   }
 }
 
-
 resource "aws_iam_role" "embedding_generator" {
   name               = "embedding_generator"
-  assume_role_policy = data.aws_iam_policy_document.embedding_generator.json
+  assume_role_policy = data.aws_iam_policy_document.embedding_generator_assume.json
+
+  inline_policy {
+    policy = data.aws_iam_policy_document.embedding_generator_perm.json
+  }
 }
 
 
@@ -34,8 +39,9 @@ resource "aws_lambda_function" "embedding_generator" {
   function_name = "embedding_generator"
   role = aws_iam_role.embedding_generator.arn
 
-  image_uri = "public.ecr.aws/docker/library/hello-world:nanoserver"
-  handler = "asdf"
+  
+  filename = "empty.zip"
+  handler = "index.js"
   runtime = "nodejs18.x"
 
   publish = true

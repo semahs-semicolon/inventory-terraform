@@ -1,5 +1,5 @@
 
-data "aws_iam_policy_document" "resizer" {
+data "aws_iam_policy_document" "resizer_assume" {
   statement {
     effect = "Allow"
 
@@ -11,7 +11,8 @@ data "aws_iam_policy_document" "resizer" {
 
     actions = ["sts:AssumeRole"]
   }
-
+}
+data "aws_iam_policy_document" "resizer_perm" {
   statement {
     effect = "Allow"
 
@@ -27,7 +28,11 @@ data "aws_iam_policy_document" "resizer" {
 
 resource "aws_iam_role" "resizer" {
   name               = "resizer"
-  assume_role_policy = data.aws_iam_policy_document.resizer.json
+  assume_role_policy = data.aws_iam_policy_document.resizer_assume.json
+
+  inline_policy {
+    policy = data.aws_iam_policy_document.resizer_perm.json
+  }
 }
 
 
@@ -45,7 +50,7 @@ resource "aws_lambda_function" "resizer" {
   function_name = "image_resizer"
   role = aws_iam_role.resizer.arn
 
-  image_uri = "public.ecr.aws/docker/library/hello-world:nanoserver"
+  filename = "empty.zip"
   handler = "aa"
   runtime = "nodejs18.x"
 }

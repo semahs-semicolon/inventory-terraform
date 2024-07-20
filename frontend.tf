@@ -1,20 +1,45 @@
 
 
 resource "aws_s3_bucket" "inventory_deployment" {
-  bucket = "inventory_deployment"
+  bucket = "inventory-deployment"
 
   tags = {
-    Name = "inventory_deployment"
+    Name = "inventory-deployment"
   }
 }
 
-resource "aws_s3_bucket_acl" "inventory_deployment" {
-  bucket = aws_s3_bucket.inventory_deployment.id
-  acl    = "private"
+data "aws_iam_policy_document" "inventory_deployment_cloudfront" {
+  statement {
+    principals {
+      type = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
+    }
+    actions = ["s3:GetObject"]
+    
+    resources = [format("%s/*", aws_s3_bucket.inventory_deployment.arn)]
+    
+    condition {
+      test = "StringEquals"
+      variable = "AWS:SourceArn"
+      values = [aws_cloudfront_distribution.cloudfront.arn]
+    }
+
+    effect = "Allow"
+  }
 }
 
+resource "aws_s3_bucket_policy" "inventory_deployment_cloudfront" {
+  bucket = aws_s3_bucket.inventory_deployment.id
+  policy = data.aws_iam_policy_document.inventory_deployment_cloudfront.json
+}
 
-data "aws_iam_policy_document" "inventory_front_deploy_github_actions" {
+# resource "aws_s3_bucket_acl" "inventory_deployment" {
+#   bucket = aws_s3_bucket.inventory_deployment.id
+#   acl    = "private"
+# }
+
+
+data "aws_iam_policy_document" "inventory_front_deploy_github_actions_assume" {
   statement {
     effect = "Allow"
 
@@ -37,7 +62,9 @@ data "aws_iam_policy_document" "inventory_front_deploy_github_actions" {
 
     actions = ["sts:AssumeRoleWithWebIdentity"]
   }
+}
 
+data "aws_iam_policy_document" "inventory_front_deploy_github_actions_perm" {
   statement {
     effect = "Allow"
 
@@ -55,8 +82,11 @@ data "aws_iam_policy_document" "inventory_front_deploy_github_actions" {
   }
 }
 
-
 resource "aws_iam_role" "inventory_front_deploy_github_actions" {
   name               = "inventory_front_deploy_github_actions"
-  assume_role_policy = data.aws_iam_policy_document.inventory_front_deploy_github_actions.json
+  assume_role_policy = data.aws_iam_policy_document.inventory_front_deploy_github_actions_assume.json
+
+  inline_policy {
+    policy = data.aws_iam_policy_document.inventory_front_deploy_github_actions_perm.json
+  }
 }

@@ -12,7 +12,7 @@ data "aws_bedrock_foundation_model" "llama70B" {
 }
 
 
-data "aws_iam_policy_document" "aicategorizer" {
+data "aws_iam_policy_document" "aicategorizer_assume" {
   statement {
     effect = "Allow"
 
@@ -24,7 +24,9 @@ data "aws_iam_policy_document" "aicategorizer" {
 
     actions = ["sts:AssumeRole"]
   }
+}
 
+data "aws_iam_policy_document" "aicategorizer_perm" {
   statement {
     effect = "Allow"
 
@@ -40,7 +42,11 @@ data "aws_iam_policy_document" "aicategorizer" {
 
 resource "aws_iam_role" "aicategorizer" {
   name               = "aicategorizer"
-  assume_role_policy = data.aws_iam_policy_document.aicategorizer.json
+  assume_role_policy = data.aws_iam_policy_document.aicategorizer_assume.json
+
+  inline_policy {
+    policy = data.aws_iam_policy_document.aicategorizer_perm.json
+  }
 }
 
 
@@ -49,7 +55,8 @@ resource "aws_lambda_function" "aicategorizer" {
   function_name = "aicategorizer"
   role = aws_iam_role.aicategorizer.arn
 
-  image_uri = "public.ecr.aws/docker/library/hello-world:nanoserver"
+  
+  filename = "empty.zip"
   handler = "asdf"
   runtime = "nodejs18.x"
 
