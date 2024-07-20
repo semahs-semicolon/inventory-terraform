@@ -14,9 +14,9 @@ data "aws_iam_policy_document" "inventory_deployment_cloudfront" {
       type = "Service"
       identifiers = ["cloudfront.amazonaws.com"]
     }
-    actions = ["s3:GetObject"]
+    actions = ["s3:GetObject", "s3:ListBucket"]
     
-    resources = [format("%s/*", aws_s3_bucket.inventory_deployment.arn)]
+    resources = [format("%s/*", aws_s3_bucket.inventory_deployment.arn), aws_s3_bucket.inventory_deployment.arn]
     
     condition {
       test = "StringEquals"
