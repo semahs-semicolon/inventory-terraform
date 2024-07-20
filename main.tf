@@ -271,6 +271,11 @@ resource "aws_cloudfront_distribution" "cloudfront" {
     ssl_support_method = "sni-only"
   }
 
+  custom_error_response {
+    error_code = 404
+    response_page_path = "/index.html"
+  }
+
   depends_on = [ aws_s3_bucket_ownership_controls.cf_logging, aws_s3_bucket_acl.cf_logging, aws_acm_certificate_validation.cert_valid ]
 }
 
