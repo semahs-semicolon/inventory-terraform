@@ -99,7 +99,7 @@ resource "aws_cloudfront_origin_access_control" "api" {
   name                              = "lambda"
   description                       = "Lambda Policy"
   origin_access_control_origin_type = "lambda"
-  signing_behavior                  = "always"
+  signing_behavior                  = "never"
   signing_protocol                  = "sigv4"
 }
 
@@ -175,7 +175,7 @@ resource "aws_cloudfront_distribution" "cloudfront" {
     domain_name = replace(aws_lambda_function_url.apiserver.function_url,"/(^https://)|(/$)/","")
     origin_id = local.api_origin_id
 
-    origin_access_control_id = aws_cloudfront_origin_access_control.api.id
+    # origin_access_control_id = aws_cloudfront_origin_access_control.api.id
 
     custom_origin_config {
       origin_ssl_protocols = ["TLSv1.2", "TLSv1.1", "TLSv1", "SSLv3"]

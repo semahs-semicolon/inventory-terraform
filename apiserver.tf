@@ -140,8 +140,12 @@ resource "aws_lambda_permission" "apiserver_cloudfront" {
   statement_id = "AllowCloudFrontExecuteAPIServer"
   function_name = aws_lambda_function.apiserver.function_name
   action = "lambda:InvokeFunctionUrl"
-  principal = "cloudfront.amazonaws.com"
-  source_arn = "arn:aws:cloudfront::851725607847:distribution/E3F36JEUQGM4ZU"
+  # principal = "cloudfront.amazonaws.com"
+  principal = "*"
+  # source_arn = "arn:aws:cloudfront::851725607847:distribution/E3F36JEUQGM4ZU"
+  # source_arn = "*"
+  qualifier = aws_lambda_alias.production.name
+  function_url_auth_type = "NONE"
 }
 
 resource "aws_lambda_alias" "production" {
@@ -153,7 +157,7 @@ resource "aws_lambda_alias" "production" {
 resource "aws_lambda_function_url" "apiserver" {
   function_name = aws_lambda_function.apiserver.function_name
   qualifier = aws_lambda_alias.production.name
-  authorization_type = "AWS_IAM"
+  authorization_type = "NONE"
 
 
   cors {
@@ -164,8 +168,6 @@ resource "aws_lambda_function_url" "apiserver" {
     expose_headers    = ["keep-alive", "date"]
     max_age           = 86400
   }
-
-  
 }
 
 
@@ -208,7 +210,8 @@ data "aws_iam_policy_document" "apiserver_deploy_github_actions_perm" {
 
     actions = [
         "lambda:PublishVersion",
-        "lambda:UpdateFunctionCode"
+        "lambda:UpdateFunctionCode",
+        "lambda:UpdateAlias"
     ]
   }
 }
