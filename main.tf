@@ -164,6 +164,22 @@ resource "aws_cloudfront_function" "removeapifunc" {
   EOL
 }
 
+resource "aws_cloudfront_function" "spa" {
+  name = "spa"
+  runtime = "cloudfront-js-2.0"
+  publish = true
+  code = <<-EOL
+  function handler(event) {
+    var request = event.request;
+    if (!request.uri.includes(".")) {
+      request.uri = "/200.html"
+    }
+    return request;
+  }
+  EOL
+}
+
+
 resource "aws_cloudfront_distribution" "cloudfront" {
   origin {
     domain_name              = aws_s3_bucket.inventory_deployment.bucket_regional_domain_name
@@ -227,6 +243,12 @@ resource "aws_cloudfront_distribution" "cloudfront" {
     min_ttl                = 0
     default_ttl            = 3600
     max_ttl                = 86400
+
+
+    function_association {
+      function_arn = aws_cloudfront_function.spa.arn
+      event_type = "viewer-request"
+    }
   }
 
   price_class = "PriceClass_All"
@@ -321,11 +343,11 @@ resource "aws_cloudfront_distribution" "cloudfront" {
     ssl_support_method = "sni-only"
   }
 
-  custom_error_response {
-    error_code = 404
-    response_code = 200
-    response_page_path = "/200.html"
-  }
+  # custom_error_response {
+  #   error_code = 404
+  #   response_code = 200
+  #   response_page_path = "/200.html"
+  # }
 
   depends_on = [ aws_s3_bucket_ownership_controls.cf_logging, aws_s3_bucket_acl.cf_logging, aws_acm_certificate_validation.cert_valid ]
 }
