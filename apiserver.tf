@@ -128,6 +128,7 @@ resource "aws_lambda_function" "apiserver" {
   #   security_group_ids = [ aws_default_security_group.default_sg.id ]
   #   subnet_ids = [ for k,v in aws_subnet.public_subnets : v.id ]
   # }
+  
 
   memory_size = 512
 
