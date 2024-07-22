@@ -3,7 +3,9 @@ import { BedrockRuntimeClient, ConverseCommand } from "@aws-sdk/client-bedrock-r
 import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
 
 const ssmClient = new SSMClient();
-const bedrockClient = new BedrockRuntimeClient();
+const bedrockClient = new BedrockRuntimeClient({
+    region: "us-west-2"
+});
 
 const passwordResp  = await ssmClient.send(new GetParameterCommand({
     Name: process.env["DATABASE_PASSWORD_PARAM_NAME"],
