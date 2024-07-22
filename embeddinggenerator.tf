@@ -84,6 +84,6 @@ resource "aws_cloudwatch_event_target" "keep_embeeder_warm_target" {
   count = 1
 }
 
-resource "aws_ecr_repository" "embedder_repo" {
-  name = "embeddinggen"
-}
+# resource "aws_ecr_repository" "embedder_repo" {
+#   name = "embeddinggen"
+# }

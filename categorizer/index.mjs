@@ -1,4 +1,4 @@
-import { Pool } from 'pg';
+import pg from 'pg';
 import { BedrockRuntimeClient, ConverseCommand } from "@aws-sdk/client-bedrock-runtime";
 import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
 
@@ -11,7 +11,7 @@ const passwordResp  = await ssmClient.send(new GetParameterCommand({
 }));
 
 
-const pool = new Pool({
+const pool = new pg.Pool({
     host: process.env["PGHOST"],
     user: process.env["PGUSER"],
     port: process.env["PGPORT"],
