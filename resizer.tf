@@ -56,6 +56,8 @@ resource "aws_lambda_function" "resizer" {
   handler = "index.handler"
   runtime = "nodejs18.x"
 
+  memory_size = 3008
+
   environment {
     variables = {
       "TARGET_BUCKET": aws_s3_bucket.scaled_images.id

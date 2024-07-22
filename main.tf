@@ -276,6 +276,11 @@ resource "aws_cloudfront_distribution" "cloudfront" {
     min_ttl = 0
     max_ttl = 86400
     default_ttl = 3600
+
+    function_association {
+      function_arn = aws_cloudfront_function.removeapifunc.arn
+      event_type = "viewer-request"
+    }
   }
 
   ordered_cache_behavior {
@@ -297,6 +302,12 @@ resource "aws_cloudfront_distribution" "cloudfront" {
     min_ttl = 0
     max_ttl = 86400
     default_ttl = 3600
+
+
+    function_association {
+      function_arn = aws_cloudfront_function.removeapifunc.arn
+      event_type = "viewer-request"
+    }
   }
 
 

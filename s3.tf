@@ -17,9 +17,9 @@ data "aws_iam_policy_document" "images_cloudfront" {
       type = "Service"
       identifiers = ["cloudfront.amazonaws.com"]
     }
-    actions = ["s3:GetObject"]
+    actions = ["s3:GetObject", "s3:ListBucket"]
     
-    resources = [format("%s/*", aws_s3_bucket.images.arn)]
+    resources = [format("%s/*", aws_s3_bucket.images.arn), aws_s3_bucket.images.arn]
     
     condition {
       test = "StringEquals"
@@ -51,9 +51,9 @@ data "aws_iam_policy_document" "scaled_images_cloudfront" {
       type = "Service"
       identifiers = ["cloudfront.amazonaws.com"]
     }
-    actions = ["s3:GetObject"]
+    actions = ["s3:GetObject", "s3:ListBucket"]
     
-    resources = [format("%s/*", aws_s3_bucket.scaled_images.arn)]
+    resources = [format("%s/*", aws_s3_bucket.scaled_images.arn), aws_s3_bucket.scaled_images.arn]
     
     condition {
       test = "StringEquals"
