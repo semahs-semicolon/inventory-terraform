@@ -63,7 +63,7 @@ const getProduct = async (productId) => {
     return (await pool.query("SELECT * FROM inventory.products WHERE id = $1", [productId])).rows[0]
 }
 const persistChosen = async (productId, chosenId) => {
-    return await pool.query("UPDATE inventory.products SET categoryAccepted = false, categoryId = $1 WHERE id = $2", [chosenId, productId])
+    return await pool.query("UPDATE inventory.products SET category_accepted = false, category_id = $1 WHERE id = $2", [chosenId, productId])
 }
 
 const getCategoryName = (category) => {
@@ -121,15 +121,15 @@ const chooseFinal = async (candidates, item) => {
         },
         toolConfig: {
             tools: tool_list,
-            toolChoice: {
-                tool: {
-                    name: "set_category"
-                }
-            }
+            // toolChoice: {
+            //     tool: {
+            //         name: "set_category"
+            //     }
+            // }
         }
     }));
     const blocks = aiResponse.output.message.content;
-    console.log(aiResponse);
+    console.log(blocks);
 
     for (const block of blocks) {
         if (block.toolUse != null) {
@@ -143,8 +143,8 @@ const chooseFinal = async (candidates, item) => {
 export const handler = async (event) => {
     const product = await getProduct(event.productId);
     const categories = await buildCategories();
-    console.log(categories);
-    console.log(product);
+    // console.log(categories);
+    console.log(product.name);
 
     let categoriesMod = [];
     for (const [id, category] of Object.entries(categories)) {
@@ -168,7 +168,10 @@ export const handler = async (event) => {
 
     const chosen = await chooseFinal(categoriesMod, product.name); // Claude 3 Opus seem quite smart.
     
+    if (chosen == undefined) return;
+
     const chosenCategory = categoriesMod.filter(a => a.name == chosen)[0];
+    console.log("Chosen: "+chosen+" id "+chosenCategory)
 
     await persistChosen(event.productId, chosenCategory.id);
 }

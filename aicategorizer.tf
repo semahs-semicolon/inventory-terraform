@@ -51,6 +51,9 @@ resource "aws_iam_role" "aicategorizer" {
 
   # managed_policy_arns = [data.aws_iam_policy.lambda_vpc.arn]
 
+  managed_policy_arns = [data.aws_iam_policy.lambda_default_execution.arn]
+
+
   inline_policy {
     name = "aicategorizer_perms"
     policy = data.aws_iam_policy_document.aicategorizer_perm.json
@@ -80,6 +83,8 @@ resource "aws_lambda_function" "aicategorizer" {
       "MODEL_ID": data.aws_bedrock_foundation_model.claude_sonnet.model_id
     }
   }
+
+  timeout = 30
 
 
   # vpc_config {
