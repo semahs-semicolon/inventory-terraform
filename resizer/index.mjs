@@ -21,8 +21,8 @@ export const handler = async (event) => {
 
 
         const list = [
-            doTransform(bytes, "thumbnail", key, (sharp) => sharp.resize(60,60,'inside')),
-            doTransform(bytes, "objectview", key, (sharp) => sharp.resize(500,500,'inside')),
+            doTransform(bytes, "thumbnail", key, (sharp) => sharp.resize(120,120,'inside')),
+            doTransform(bytes, "objectview", key, (sharp) => sharp.resize(600,600,'inside')),
             doTransform(bytes, "webp", key, (sharp) => sharp)
         ];
         await Promise.all(list);

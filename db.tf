@@ -76,23 +76,54 @@ resource "aws_instance" "database" {
         ./build.sh 
         cd ..
 
+        # I know, I also don't like snap, but this is only way to install aws-cli so please leave it this way. Or you could fix apt-repo but I'm lazy
+        sudo snap install aws-cli --classic
+        PASSWORD=$(aws ssm get-parameter --name database_password --with-decryption --query "Parameter.Value" --output text)
+
+
         # provision accounts
         cat > /tmp/provision.sql <<EOF
         create database inventory;
-        create user inventory_system;
+        create user inventory_system WITH ENCRYPTED PASSWORD '$${PASSWORD}';
         grant all privileges on database inventory to inventory_system;
         EOF
 
         sudo -u postgres psql -a -f /tmp/provision.sql
+        rm -rf /tmp/provision.sql
+
         cd textsearch_ko
         sudo -u postgres psql -f ts_mecab_ko.sql inventory
         cd ..
 
         ## pg_hba entry for db
-
+        echo "host    all             all             0.0.0.0/0               scram-sha-256" >> /etc/postgresql/16/main/pg_hba.conf 
+        echo "listen_addresses = '*'" >> /etc/postgresql/16/main/postgresql.conf
 
         # apply database dump manually yourself.
 
+        # database backup to s3 cron job!
+
+        cat > /root/backup.sh <<EOF
+        #!/bin/bash
+        BUCKET_NAME=${aws_s3_bucket.dbbackup.id}
+
+        TIMESTAMP=$(date +%F_%T | tr ':' '-')
+        TEMP_FILE=$(mktemp tmp.XXXXXXXXXX)
+        S3_FILE="s3://$BUCKET_NAME/backup-\$TIMESTAMP"
+
+        sudo -u postgres pg_dump -Fc --no-acl inventory > \$TEMP_FILE
+        gz $TEMP_FILE
+        aws s3 cp \$TEMP_FILE.gz \$S3_FILE
+        rm "\$TEMP_FILE.gz"
+
+        (crontab -l 2>/dev/null; echo "0 0 * * * /root/backup.sh") | crontab -
+        EOF
+
+
+        chmod +x /root/backup.sh
+        # we do daily backup. Each backup is like 2.3M
+
+        systemctl restart postgresql
         EOL
     // will take care of it manually
   
@@ -101,4 +132,60 @@ resource "aws_instance" "database" {
     }
 
     key_name = aws_key_pair.keypair.key_name
+
+    iam_instance_profile = aws_iam_instance_profile.dbprofile.id
 }
+
+data "aws_iam_policy_document" "db_backup" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+
+    actions = ["sts:AssumeRole"]
+  }
+}
+
+data "aws_iam_policy_document" "allow_backup" {
+  statement {
+    effect = "Allow"
+
+    resources = [ aws_s3_bucket.dbbackup.arn, "${aws_s3_bucket.dbbackup.arn}/*"]
+
+    actions = ["s3:PutObject", "s3:GetObject", "s3:ListBucket"]
+  }
+  statement {
+    effect = "Allow"
+
+    resources = [aws_ssm_parameter.database_password.arn]
+
+    actions = ["ssm:GetParameter", "kms:Decrypt"]
+  }
+}
+
+resource "aws_iam_role" "db_backup" {
+  name               = "db_backup"
+  assume_role_policy = data.aws_iam_policy_document.db_backup.json
+
+  
+  inline_policy {
+    name = "allow_backup"
+    policy = data.aws_iam_policy_document.allow_backup.json
+  }
+}
+
+resource "aws_iam_instance_profile" "dbprofile" {
+  name = "db_profile"
+  role = aws_iam_role.db_backup.name
+}
+
+resource "aws_s3_bucket" "dbbackup" {
+  bucket = "semicolon-dbdump"
+  tags = {
+    Name = "semicolon-dbdump"
+  }
+}
+
