@@ -172,7 +172,7 @@ resource "aws_cloudfront_distribution" "cloudfront" {
   }
 
   origin {
-    domain_name = replace(aws_lambda_function_url.apiserver.function_url,"/(^https://)|(/$)/","")
+    domain_name = replace(aws_apigatewayv2_api.inventory_api.api_endpoint,"/(^https://)|(/$)/","")
     origin_id = local.api_origin_id
 
     # origin_access_control_id = aws_cloudfront_origin_access_control.api.id
@@ -185,11 +185,6 @@ resource "aws_cloudfront_distribution" "cloudfront" {
     }
   }
 
-  origin {
-    domain_name = aws_s3_bucket.scaled_images.bucket_regional_domain_name
-    origin_access_control_id = aws_cloudfront_origin_access_control.s3.id
-    origin_id = local.scaled_image_origin_id
-  }
   origin {
     domain_name = aws_s3_bucket.images.bucket_regional_domain_name
     origin_access_control_id = aws_cloudfront_origin_access_control.s3.id
@@ -262,27 +257,6 @@ resource "aws_cloudfront_distribution" "cloudfront" {
     target_origin_id = local.image_origin_id
 
     path_pattern = "/image/**"
-
-    forwarded_values {
-      query_string = false
-
-      cookies {
-        forward = "none"
-      }
-    }
-
-    viewer_protocol_policy = "redirect-to-https"
-    min_ttl = 0
-    max_ttl = 86400
-    default_ttl = 3600
-  }
-
-  ordered_cache_behavior {
-    allowed_methods = ["GET", "HEAD", "OPTIONS"]
-    cached_methods = ["GET", "HEAD", "OPTIONS"]
-    target_origin_id = local.scaled_image_origin_id
-
-    path_pattern = "/scaled/**"
 
     forwarded_values {
       query_string = false

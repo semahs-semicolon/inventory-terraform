@@ -138,14 +138,12 @@ resource "aws_lambda_function" "apiserver" {
 
 resource "aws_lambda_permission" "apiserver_cloudfront" {
   statement_id = "AllowCloudFrontExecuteAPIServer"
-  function_name = aws_lambda_function.apiserver.function_name
-  action = "lambda:InvokeFunctionUrl"
-  # principal = "cloudfront.amazonaws.com"
-  principal = "*"
-  # source_arn = "arn:aws:cloudfront::851725607847:distribution/E3F36JEUQGM4ZU"
-  # source_arn = "*"
+  function_name = aws_lambda_alias.production.arn
+  action = "lambda:InvokeFunction"
+  principal = "apigateway.amazonaws.com"
+  source_arn = "${aws_apigatewayv2_api.inventory_api.execution_arn}/**"
   qualifier = aws_lambda_alias.production.name
-  function_url_auth_type = "NONE"
+  # function_url_auth_type = "AWS_IAM"
 }
 
 resource "aws_lambda_alias" "production" {
@@ -157,7 +155,7 @@ resource "aws_lambda_alias" "production" {
 resource "aws_lambda_function_url" "apiserver" {
   function_name = aws_lambda_function.apiserver.function_name
   qualifier = aws_lambda_alias.production.name
-  authorization_type = "NONE"
+  authorization_type = "AWS_IAM"
 
 
   cors {
@@ -169,8 +167,6 @@ resource "aws_lambda_function_url" "apiserver" {
     max_age           = 86400
   }
 }
-
-
 
 
 

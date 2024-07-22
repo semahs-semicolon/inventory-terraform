@@ -66,3 +66,5 @@ resource "aws_s3_bucket_notification" "resize_notif" {
 
     depends_on = [aws_lambda_permission.resizer_allow_bucket]
 }
+
+// auto resizer. Resizing config? idk.
