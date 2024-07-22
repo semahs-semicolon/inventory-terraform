@@ -115,7 +115,7 @@ resource "aws_lambda_function" "apiserver" {
   environment {
     variables = {
       "CATEGORIZATION_LAMBDA_ARN": aws_lambda_function.aicategorizer.arn,
-      "EMBEDDING_LAMBDA_URL": aws_lambda_function_url.embedding_generator.function_url,
+      "EMBEDDING_LAMBDA_URL": "${ aws_apigatewayv2_stage.production.invoke_url }/embedding",
       "DATABASE_HOSTNAME": aws_instance.database.public_ip,
       "IMAGE_BUCKET": aws_s3_bucket.images.id,
       "JWT_PUBKEY_PARAM_NAME": aws_ssm_parameter.jwt_pubkey.id,
@@ -150,22 +150,6 @@ resource "aws_lambda_alias" "production" {
   function_version = aws_lambda_function.apiserver.version
   function_name = aws_lambda_function.apiserver.function_name
   name = "production"
-}
-
-resource "aws_lambda_function_url" "apiserver" {
-  function_name = aws_lambda_function.apiserver.function_name
-  qualifier = aws_lambda_alias.production.name
-  authorization_type = "AWS_IAM"
-
-
-  cors {
-    allow_credentials = true
-    allow_origins     = ["*"]
-    allow_methods     = ["*"]
-    allow_headers     = ["date", "keep-alive"]
-    expose_headers    = ["keep-alive", "date"]
-    max_age           = 86400
-  }
 }
 
 

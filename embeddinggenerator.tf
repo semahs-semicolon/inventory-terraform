@@ -28,6 +28,8 @@ resource "aws_iam_role" "embedding_generator" {
   name               = "embedding_generator"
   assume_role_policy = data.aws_iam_policy_document.embedding_generator_assume.json
 
+  managed_policy_arns = [ data.aws_iam_policy.lambda_default_execution.arn ]
+
   inline_policy {
     name = "embeddinggen_perms"
     policy = data.aws_iam_policy_document.embedding_generator_perm.json
@@ -35,30 +37,49 @@ resource "aws_iam_role" "embedding_generator" {
 }
 
 
-// TODO
 resource "aws_lambda_function" "embedding_generator" {
   function_name = "embedding_generator"
   role = aws_iam_role.embedding_generator.arn
 
-  
-  filename = "empty.zip"
-  handler = "index.js"
-  runtime = "nodejs18.x"
+  image_uri = "851725607847.dkr.ecr.ap-northeast-2.amazonaws.com/embeddinggen:v6" 
+  package_type = "Image"
 
-  publish = true
+
+  memory_size = 2000
+  timeout = 30
+
+  environment {
+    variables = {
+      "BUCKET": aws_s3_bucket.images.id
+    }
+  }
 }
 
-resource "aws_lambda_function_url" "embedding_generator" {
-  function_name = aws_lambda_function.embedding_generator.function_name
-  authorization_type = "AWS_IAM"
+resource "aws_lambda_permission" "embedding_generator_apigateway" {
+  statement_id = "AllowAPIGatewayExecuteAPIServer"
+  function_name = aws_lambda_function.embedding_generator.arn
+  action = "lambda:InvokeFunction"
+  principal = "apigateway.amazonaws.com"
+  source_arn = "${aws_apigatewayv2_api.inventory_api.execution_arn}/**"
+}
+
+resource "aws_lambda_permission" "embedding_generator_events" {
+    statement_id = "AllowExecutionFromEventBridge"
+    action = "lambda:InvokeFunction"
+    function_name = aws_lambda_function.embedding_generator.function_name
+    principal = "events.amazonaws.com"
+    source_arn = aws_cloudwatch_event_rule.keep_embedder_warm.arn
+}
+
+resource "aws_cloudwatch_event_rule" "keep_embedder_warm" {
+  name = "EmbedderWarmer"
+  schedule_expression = "rate(5 minutes)"
+}
 
 
-  cors {
-    allow_credentials = true
-    allow_origins     = ["*"]
-    allow_methods     = ["*"]
-    allow_headers     = ["date", "keep-alive"]
-    expose_headers    = ["keep-alive", "date"]
-    max_age           = 86400
-  }
+resource "aws_cloudwatch_event_target" "keep_embeeder_warm_target" {
+  rule      = aws_cloudwatch_event_rule.keep_embedder_warm.name
+  arn       = aws_lambda_function.embedding_generator.arn
+  input = ""
+  count = 1
 }
