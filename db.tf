@@ -111,10 +111,10 @@ resource "aws_instance" "database" {
 
         TIMESTAMP=$(date +%F_%T | tr ':' '-')
         TEMP_FILE=$(mktemp tmp.XXXXXXXXXX)
-        S3_FILE="s3://$BUCKET_NAME/backup-\$TIMESTAMP"
+        S3_FILE="s3://\$BUCKET_NAME/backup-\$TIMESTAMP"
 
         sudo -u postgres pg_dump -Fc --no-acl inventory > \$TEMP_FILE
-        gz $TEMP_FILE
+        gzip \$TEMP_FILE
         aws s3 cp \$TEMP_FILE.gz \$S3_FILE
         rm "\$TEMP_FILE.gz"
 
