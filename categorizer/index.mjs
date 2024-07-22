@@ -127,6 +127,7 @@ const chooseFinal = async (candidates, item) => {
         }
     }));
     const blocks = aiResponse.output.message.content;
+    console.log(aiResponse);
 
     for (const block of blocks) {
         if (block.toolUse != null) {
@@ -140,6 +141,16 @@ const chooseFinal = async (candidates, item) => {
 export const handler = async (event) => {
     const product = await getProduct(event.productId);
     const categories = await buildCategories();
+    console.log(categories);
+    console.log(product);
+
+    let categoriesMod = [];
+    for (const [id, category] of Object.entries(categories)) {
+        categoriesMod.push({
+            id: id,
+            name: category
+        })
+    }
 
     // let questions = [];
     // for (const [id, category] of Object.entries(categories)) {
@@ -153,9 +164,9 @@ export const handler = async (event) => {
     // const allAnswers = await Promise.all(questions);
     // const candidates = allAnswers.filter(a => a.suitable);
 
-    const chosen = await chooseFinal(categories, product.name); // Claude 3 Opus seem quite smart.
+    const chosen = await chooseFinal(categoriesMod, product.name); // Claude 3 Opus seem quite smart.
     
-    const chosenCategory = categories.filter(a => a.name == chosen)[0];
+    const chosenCategory = categoriesMod.filter(a => a.name == chosen)[0];
 
     await persistChosen(event.productId, chosenCategory.id);
 }

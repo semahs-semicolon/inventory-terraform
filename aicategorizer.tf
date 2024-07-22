@@ -74,7 +74,7 @@ resource "aws_lambda_function" "aicategorizer" {
     variables = {
       "PGHOST": aws_instance.database.public_ip,
       "PGPORT": "5432",
-      "PGUSER": "inventory",
+      "PGUSER": "inventory_system",
       "PGDATABASE": "inventory",
       "DATABASE_PASSWORD_PARAM_NAME": aws_ssm_parameter.database_password.id,
       "MODEL_ID": data.aws_bedrock_foundation_model.claude_sonnet.model_id
