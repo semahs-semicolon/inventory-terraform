@@ -17,8 +17,8 @@ data "aws_iam_policy_document" "resizer_perm" {
     effect = "Allow"
 
     resources = [
-        aws_s3_bucket.images.arn,
-        aws_s3_bucket.scaled_images.arn
+        "${aws_s3_bucket.images.arn}/*",
+        "${aws_s3_bucket.scaled_images.arn}/*"
     ]
 
     actions = ["s3:PutObject", "s3:GetObject"]
@@ -51,9 +51,16 @@ resource "aws_lambda_function" "resizer" {
   function_name = "image_resizer"
   role = aws_iam_role.resizer.arn
 
-  filename = "empty.zip"
-  handler = "aa"
+  filename = data.archive_file.resizer_code.output_path
+  source_code_hash = data.archive_file.resizer_code.output_md5
+  handler = "index.handler"
   runtime = "nodejs18.x"
+
+  environment {
+    variables = {
+      "TARGET_BUCKET": aws_s3_bucket.scaled_images.id
+    }
+  }
 }
 
 resource "aws_s3_bucket_notification" "resize_notif" {
@@ -67,4 +74,10 @@ resource "aws_s3_bucket_notification" "resize_notif" {
     depends_on = [aws_lambda_permission.resizer_allow_bucket]
 }
 
-// auto resizer. Resizing config? idk.
+
+data "archive_file" "resizer_code" {
+  type        = "zip"
+  source_dir  = "${path.module}/resizer/"
+  output_path = "${path.module}/resizer.zip"
+}
+// auto resizer. Resizing config?

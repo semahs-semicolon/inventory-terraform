@@ -138,7 +138,7 @@ resource "aws_lambda_function" "apiserver" {
 
 resource "aws_lambda_permission" "apiserver_cloudfront" {
   statement_id = "AllowCloudFrontExecuteAPIServer"
-  function_name = aws_lambda_alias.production.arn
+  function_name = aws_lambda_function.apiserver.arn
   action = "lambda:InvokeFunction"
   principal = "apigateway.amazonaws.com"
   source_arn = "${aws_apigatewayv2_api.inventory_api.execution_arn}/**"
