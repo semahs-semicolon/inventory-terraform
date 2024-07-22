@@ -200,7 +200,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "dbbackup_lifecycle" {
     filter {}
 
     transition {
-      days = 3
+      days = 7
       storage_class = "GLACIER"
     }
 
