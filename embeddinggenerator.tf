@@ -41,7 +41,7 @@ resource "aws_lambda_function" "embedding_generator" {
   function_name = "embedding_generator"
   role = aws_iam_role.embedding_generator.arn
 
-  image_uri = "851725607847.dkr.ecr.ap-northeast-2.amazonaws.com/embeddinggen:v6" 
+  image_uri = "767397837757.dkr.ecr.ap-northeast-2.amazonaws.com/embeddinggen:v1" 
   package_type = "Image"
 
 

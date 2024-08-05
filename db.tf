@@ -185,9 +185,9 @@ resource "aws_iam_instance_profile" "dbprofile" {
 }
 
 resource "aws_s3_bucket" "dbbackup" {
-  bucket = "semicolon-dbdump"
+  bucket = "semicolon-inventory-dbdump"
   tags = {
-    Name = "semicolon-dbdump"
+    Name = "semicolon-inventory-dbdump"
   }
 }
 
