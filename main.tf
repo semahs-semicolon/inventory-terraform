@@ -50,7 +50,7 @@ locals {
   image_origin_id = "image"
   scaled_image_origin_id = "scaledimage" 
 
-  domain_name = "inventory-test.seda.club"
+  domain_name = "inventory.seda.club"
 }
 
 resource "aws_s3_bucket" "cf_logging" {
