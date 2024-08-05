@@ -11,29 +11,32 @@ terraform {
     }
   }
 
-#   backend "s3" {
-#     bucket = "terraform-state"
-#     key    = "tfstate"
-#     region = "ap-northeast-2"
-#   }
+  backend "s3" {
+    bucket = "semicolon-terraform-state"
+    key    = "tfstate"
+    region = "ap-northeast-2"
+    profile = "semicolon-inventory"
+
+    dynamodb_table = "semicolon-terraform-dynamodbbackend"
+  }
 
   required_version = ">= 1.2.0"
 }
 
 provider "aws" {
   region  = "ap-northeast-2"
-  profile = "semicolon-inventory-test"
+  profile = "semicolon-inventory"
 }
 
 provider "aws" {
   alias = "oregon"
   region  = "us-west-2"
-  profile = "semicolon-inventory-test"
+  profile = "semicolon-inventory"
 }
 provider "aws" {
   alias = "virginia"
   region  = "us-east-1"
-  profile = "semicolon-inventory-test"
+  profile = "semicolon-inventory"
 }
 
 provider "cloudflare" {
