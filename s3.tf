@@ -1,8 +1,8 @@
 
 resource "aws_s3_bucket" "images" {
-  bucket = "whatthe-images-2"
+  bucket = "inventory-raw-images"
   tags = {
-    Name = "whatthe-images-2"
+    Name = "inventory-raw-images"
   }
 }
 
@@ -33,9 +33,9 @@ data "aws_iam_policy_document" "images_cloudfront" {
 
 
 resource "aws_s3_bucket" "scaled_images" {
-  bucket = "scaled-images2"
+  bucket = "inventory-scaled-images"
   tags = {
-    Name = "scaled-images2"
+    Name = "inventory-scaled-images"
   }
 }
 

@@ -54,9 +54,9 @@ locals {
 }
 
 resource "aws_s3_bucket" "cf_logging" {
-    bucket = "cloudfront-logging222"
+    bucket = "inventory-cloudfront-logging"
     tags ={
-        Name = "cloudfront-logging222"
+        Name = "inventory-cloudfront-logging"
     }
 }
 resource "aws_s3_bucket_ownership_controls" "cf_logging" {

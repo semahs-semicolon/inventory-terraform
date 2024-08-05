@@ -1,10 +1,10 @@
 
 
 resource "aws_s3_bucket" "inventory_deployment" {
-  bucket = "inventory-deployment"
+  bucket = "semicolon-inventory-deployment"
 
   tags = {
-    Name = "inventory-deployment"
+    Name = "semicolon-inventory-deployment"
   }
 }
 
