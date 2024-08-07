@@ -154,6 +154,13 @@ resource "aws_lambda_alias" "production" {
 }
 
 
+resource "aws_lambda_alias" "staging" {
+  function_version = aws_lambda_function.apiserver.version
+  function_name = aws_lambda_function.apiserver.function_name
+  name = "staging"
+}
+
+
 
 data "aws_iam_policy_document" "apiserver_deploy_github_actions_assume" {
   statement {

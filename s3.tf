@@ -24,7 +24,7 @@ data "aws_iam_policy_document" "images_cloudfront" {
     condition {
       test = "StringEquals"
       variable = "AWS:SourceArn"
-      values = [aws_cloudfront_distribution.cloudfront.arn]
+      values = [aws_cloudfront_distribution.cloudfront.arn, aws_cloudfront_distribution.cloudfront_staging.arn]
     }
 
     effect = "Allow"
@@ -58,7 +58,7 @@ data "aws_iam_policy_document" "scaled_images_cloudfront" {
     condition {
       test = "StringEquals"
       variable = "AWS:SourceArn"
-      values = [aws_cloudfront_distribution.cloudfront.arn]
+      values = [aws_cloudfront_distribution.cloudfront.arn, aws_cloudfront_distribution.cloudfront_staging.arn]
     }
 
     effect = "Allow"

@@ -54,6 +54,11 @@ resource "aws_apigatewayv2_stage" "production" {
   name = "production"
 }
 
+resource "aws_apigatewayv2_stage" "staging" {
+  api_id = aws_apigatewayv2_api.inventory_api.id
+  name = "staging"
+}
+
 resource "aws_apigatewayv2_stage" "default" {
   api_id = aws_apigatewayv2_api.inventory_api.id
   name = "$default"
