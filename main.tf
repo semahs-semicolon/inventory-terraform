@@ -181,12 +181,42 @@ resource "aws_acm_certificate_validation" "cert_staging_valid" {
   certificate_arn = aws_acm_certificate.cert_staging.arn
 }
 
+resource "aws_cloudfront_cache_policy" "cacheoptimized_cors" {
+  name        = "cache-optimized-with-cors"
+  comment     = "test comment"
+  default_ttl = 86400
+  max_ttl     = 31536000
+  min_ttl     = 1
+
+  parameters_in_cache_key_and_forwarded_to_origin {
+    query_strings_config {
+      query_string_behavior = "none"
+    }
+    headers_config {
+      header_behavior = "whitelist"
+      headers {
+        items = ["Origin"]
+      }
+    }
+    cookies_config {
+      cookie_behavior = "none"
+    }
+  }
+}
+
 data "aws_cloudfront_cache_policy" "cachedisabled" {
   name = "Managed-CachingDisabled"
+}
+data "aws_cloudfront_cache_policy" "cacheoptimized" {
+  name = "Managed-CachingOptimized"
 }
 data "aws_cloudfront_origin_request_policy" "allexcepthost" {
   name = "Managed-AllViewerExceptHostHeader"
 }
+data "aws_cloudfront_origin_request_policy" "cors" {
+  name = "Managed-CORS-CustomOrigin"
+}
+
 
 resource "aws_cloudfront_function" "removeapifunc" {
   name = "removeapi"
@@ -509,23 +539,17 @@ resource "aws_cloudfront_distribution" "cloudfront_staging" {
 
     path_pattern = "/image/**"
 
-    forwarded_values {
-      query_string = false
-
-      cookies {
-        forward = "none"
-      }
-    }
-
     viewer_protocol_policy = "redirect-to-https"
-    min_ttl = 0
-    max_ttl = 86400
-    default_ttl = 3600
+
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.cors.id
+    cache_policy_id = aws_cloudfront_cache_policy.cacheoptimized_cors.id
 
     function_association {
       function_arn = aws_cloudfront_function.removeapifunc.arn
       event_type = "viewer-request"
     }
+
+    
   }
 
   ordered_cache_behavior {

@@ -64,6 +64,19 @@ data "aws_iam_policy_document" "scaled_images_cloudfront" {
     effect = "Allow"
   }
 }
+
+resource "aws_s3_bucket_cors_configuration" "images_cors" {
+  bucket = aws_s3_bucket.images.id
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["GET"]
+    allowed_origins = ["http://localhost:5173"]
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
+}
+
 # resource "aws_s3_bucket_acl" "scaled_images" {
 #   bucket = aws_s3_bucket.scaled_images.id
 #   acl    = "private"
