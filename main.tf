@@ -465,19 +465,8 @@ resource "aws_cloudfront_distribution" "cloudfront_staging" {
     cached_methods   = ["GET", "HEAD"]
     target_origin_id = local.inventory_origin_id
 
-    forwarded_values {
-      query_string = false
-
-      cookies {
-        forward = "none"
-      }
-    }
-
     viewer_protocol_policy = "redirect-to-https"
-    min_ttl                = 0
-    default_ttl            = 3600
-    max_ttl                = 86400
-
+    cache_policy_id  = data.aws_cloudfront_cache_policy.cachedisabled.id
 
     function_association {
       function_arn = aws_cloudfront_function.spa.arn
