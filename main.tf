@@ -374,9 +374,9 @@ resource "aws_cloudfront_distribution" "cloudfront" {
     }
 
     viewer_protocol_policy = "redirect-to-https"
-    min_ttl = 0
-    max_ttl = 86400
-    default_ttl = 3600
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.cors.id
+    cache_policy_id = aws_cloudfront_cache_policy.cacheoptimized_cors.id
+
 
     function_association {
       function_arn = aws_cloudfront_function.removeapifunc.arn
@@ -400,9 +400,9 @@ resource "aws_cloudfront_distribution" "cloudfront" {
     }
 
     viewer_protocol_policy = "redirect-to-https"
-    min_ttl = 0
-    max_ttl = 86400
-    default_ttl = 3600
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.cors.id
+    cache_policy_id = aws_cloudfront_cache_policy.cacheoptimized_cors.id
+
 
 
     function_association {
@@ -568,9 +568,8 @@ resource "aws_cloudfront_distribution" "cloudfront_staging" {
     }
 
     viewer_protocol_policy = "redirect-to-https"
-    min_ttl = 0
-    max_ttl = 86400
-    default_ttl = 3600
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.cors.id
+    cache_policy_id = aws_cloudfront_cache_policy.cacheoptimized_cors.id
 
 
     function_association {
