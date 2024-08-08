@@ -365,14 +365,6 @@ resource "aws_cloudfront_distribution" "cloudfront" {
 
     path_pattern = "/image/**"
 
-    forwarded_values {
-      query_string = false
-
-      cookies {
-        forward = "none"
-      }
-    }
-
     viewer_protocol_policy = "redirect-to-https"
     origin_request_policy_id = data.aws_cloudfront_origin_request_policy.cors.id
     cache_policy_id = aws_cloudfront_cache_policy.cacheoptimized_cors.id
@@ -390,14 +382,6 @@ resource "aws_cloudfront_distribution" "cloudfront" {
     target_origin_id = local.scaled_image_origin_id
 
     path_pattern = "/scaled/**"
-
-    forwarded_values {
-      query_string = false
-
-      cookies {
-        forward = "none"
-      }
-    }
 
     viewer_protocol_policy = "redirect-to-https"
     origin_request_policy_id = data.aws_cloudfront_origin_request_policy.cors.id
@@ -558,14 +542,6 @@ resource "aws_cloudfront_distribution" "cloudfront_staging" {
     target_origin_id = local.scaled_image_origin_id
 
     path_pattern = "/scaled/**"
-
-    forwarded_values {
-      query_string = false
-
-      cookies {
-        forward = "none"
-      }
-    }
 
     viewer_protocol_policy = "redirect-to-https"
     origin_request_policy_id = data.aws_cloudfront_origin_request_policy.cors.id
